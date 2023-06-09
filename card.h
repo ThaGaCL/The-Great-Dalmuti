@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// O valor máximo de uma carta é 12, o valor 0 representa uma carta vazia 
+// O valor máximo de uma carta é 12, o valor 0 representa os coringas
 #define CARD_MAX_VALUE 12
 
 typedef struct card {

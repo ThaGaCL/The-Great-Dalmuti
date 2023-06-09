@@ -4,6 +4,7 @@ gameCtrl_t new_gameCtrl(){
     gameCtrl_t gameCtrl;
 
     gameCtrl.deck = new_deck();
+    gameCtrl.table = new_table();
 
     return gameCtrl;
 }

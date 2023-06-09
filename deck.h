@@ -12,6 +12,10 @@ typedef struct deck {
 
 deck_t new_deck();
 
+deck_t new_table();
+
 void destroy_deck(deck_t deck);
+
+void remove_card(deck_t* deck, int value);
 
 #endif
