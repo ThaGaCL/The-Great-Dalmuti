@@ -1,6 +1,5 @@
 #include "deck.h"
 
-
 deck_t new_deck(){
     deck_t deck;
 
@@ -51,3 +50,4 @@ void remove_card(deck_t* deck, int value){
     if(deck->cards[value].amount > 0)
         deck->cards[value].amount--;
 }
+

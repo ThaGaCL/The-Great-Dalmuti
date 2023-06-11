@@ -1,4 +1,5 @@
 #include "gameCtrl.h"
+#include <time.h>
 
 // TODO 
 // 1. Implementar o jogador.h e jogador.c
@@ -8,10 +9,12 @@
 // 5. Guardar qual jogador jogou cada carta na rodada (usar o indice do deck da mesa)
 
 int main(){
+    srand(time(NULL));
 
-    gameCtrl_t gameCtrl = new_gameCtrl();
-
-    print_gameCtrl(gameCtrl);
+    gameCtrl_t gameCtrl = new_gameCtrl(4);
+    // print_gameCtrl(gameCtrl);
+    distribute_cards(gameCtrl);
+    print_jogadores(gameCtrl);
 
     destroy_gameCtrl(gameCtrl);
 
