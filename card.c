@@ -11,6 +11,8 @@ card_t new_card(int value){
 }
 
 void print_card(card_t card){
-    printf("Card value: %d\n", card.value);
-    printf("Card amount: %d\n", card.amount);
+    if(card.amount > 0){
+        printf("Card value: %d\n", card.value);
+        printf("Card amount: %d\n", card.amount);
+    }
 }

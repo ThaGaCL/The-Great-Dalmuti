@@ -15,10 +15,10 @@ gameCtrl_t new_gameCtrl(int qtdJogadores);
 void print_gameCtrl(gameCtrl_t gameCtrl);
 
 // Adiciona uma carta na mesa
-void put_card(gameCtrl_t* gameCtrl, int value);
+int put_card(gameCtrl_t gameCtrl, int value, int amount, int playerId);
 
 // Compara o valor das cartas na mesa e retorna o vencedor
-void check_round_winner(gameCtrl_t* gameCtrl);
+int check_round_winner(gameCtrl_t gameCtrl);
 
 void destroy_gameCtrl(gameCtrl_t gameCtrl);
 

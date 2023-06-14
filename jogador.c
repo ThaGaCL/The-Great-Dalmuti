@@ -14,5 +14,6 @@ jogador_t new_jogador(int id){
 void print_jogador(jogador_t jogador){
     printf("Jogador %d\n", jogador.id);
     printf("Score: %d\n", jogador.score);
+    printf("Tamanho do Deck: %d\n", jogador.deck.size);
     print_deck(jogador.deck);
 }
