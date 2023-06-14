@@ -74,7 +74,7 @@ int put_card(gameCtrl_t gameCtrl, int value, int amount, int playerId){
 int check_round_winner(gameCtrl_t gameCtrl){
     int winner = 0;
     
-    for(int i = 1; i <= gameCtrl.qtdJogadores){
+    for(int i = 1; i <= gameCtrl.qtdJogadores; i++){
         if(gameCtrl.table.cards[i].value != -1)
             winner = i;
     }

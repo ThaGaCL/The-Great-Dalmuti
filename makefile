@@ -1,12 +1,12 @@
 PROGS = game
 CC = gcc
 CFLAGS = -Wall -g
-objects = main.o gameCtrl.o deck.o card.o jogador.o
+objects = main.o gameCtrl.o deck.o card.o jogador.o dgram.o
 
 game: $(objects)
 	$(CC) $(CFLAGS) $(objects) $(ALLEGRO) -o $(PROGS)
 
-main.o: main.c gameCtrl.h deck.h card.h
+main.o: main.c gameCtrl.h deck.h card.h 
 	$(CC) $(CFLAGS) -c main.c
 
 gameCtrl.o: gameCtrl.c gameCtrl.h
@@ -20,6 +20,9 @@ card.o: card.c card.h
 
 jogador.o: jogador.c jogador.h
 	$(CC) $(CFLAGS) -c jogador.c
+
+dgram.o: dgram.c
+	$(CC) $(CFLAGS) -c dgram.c
 
 clean:
 	-rm -f *~ *.o
