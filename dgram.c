@@ -31,7 +31,7 @@ int create_socket(struct sockaddr_in* saddr,char* ip){
     return s;
 }
 
-int main(){
+int main_dgram(){
 
     struct sockaddr_in saddr,caddr;
     int s = create_socket(&saddr,"127.0.0.1");//ip da maquina atual
