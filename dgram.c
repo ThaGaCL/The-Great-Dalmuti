@@ -11,7 +11,7 @@
 int create_socket(struct sockaddr_in* saddr,char* ip){
     int s;
 
-    s = socket(AF_INET, SOCK_DGRAM, );  	//IPPROTO_UDP para loopback
+    s = socket(AF_INET, SOCK_DGRAM, 0);  	//IPPROTO_UDP para loopback
 
     if (s == -1) {
         printf("Erro no Socket\n");
@@ -35,11 +35,11 @@ int main(){
 
     struct sockaddr_in saddr,caddr;
     int s = create_socket(&saddr,"127.0.0.1");//ip da maquina atual
-    unsigned char buffer[MSGSIZE];
+    char buffer[MSGSIZE];
     socklen_t len = (socklen_t )sizeof(caddr);
 
     caddr.sin_family = AF_INET;
-    caddrsin_port = htons(PORTA);
+    caddr.sin_port = htons(PORTA);
     caddr.sin_addr.s_addr = inet_addr("127.0.0.1");//ip da maquina destino
 
     memset(buffer, '\0', sizeof(buffer));
