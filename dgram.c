@@ -2,13 +2,31 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <errno.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
 
+#define MAXPLAYERS 8
 #define PORTA 2000
 #define MSGSIZE 1000
+#define LINESIZE 16
+#define IPSIZE 16
 
-int create_socket(struct sockaddr_in* saddr,char* ip){
+typedef struct info_t{
+    int numPlayers;
+    char idIps[MAXPLAYERS][IPSIZE];
+    
+    
+
+}info_t;
+
+int create_socket(char* ip,int door){
+    struct sockaddr_in saddr;
     int s;
 
     s = socket(AF_INET, SOCK_DGRAM, 0);  	//IPPROTO_UDP para loopback
@@ -18,44 +36,156 @@ int create_socket(struct sockaddr_in* saddr,char* ip){
         exit(-1);
     }
 
-    saddr->sin_family = AF_INET;
-    saddr->sin_port = htons(PORTA);
-    saddr->sin_addr.s_addr = inet_addr(ip);
+    saddr.sin_family = AF_INET;
+    saddr.sin_port = htons(door);
+    saddr.sin_addr.s_addr = inet_addr(ip);
 
-    if(bind(s, (struct sockaddr*)saddr, sizeof(*saddr)) < 0){
+    if(bind(s, (struct sockaddr*)&saddr, sizeof(saddr)) < 0){
         printf("Erro no bind\n");
         return -1;
     }
 
-
+   
     return s;
 }
 
-int main_dgram(){
+FILE* openFile(char* path,char* action){
 
-    struct sockaddr_in saddr,caddr;
-    int s = create_socket(&saddr,"127.0.0.1");//ip da maquina atual
+    FILE *arq;    
+    arq = fopen(path,action);
+    if(!arq)
+        return NULL;
+    
+    return arq;
+
+}
+
+int getHostIp(char** host_ip){
+
+    char hostbuffer[256];
+
+	struct hostent *host_entry;
+	gethostname(hostbuffer, sizeof(hostbuffer));
+
+	host_entry = gethostbyname(hostbuffer);
+
+	*host_ip= inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[0]));
+
+    return 0;
+
+}
+
+int init_info(info_t* info,int numPlayers){
+
+    info->numPlayers =numPlayers;
+
+    return 0;
+
+}
+
+void replaceFirst(char* s,char c1, char c2){
+
+    char *p=strchr(s,c1);
+    *p=c2;
+
+}
+
+
+
+int getInitInfo(int *hostId,int *destId,info_t* info,int* door){
+
+
+    FILE *arq = openFile("dados.txt","r");
+    char line[LINESIZE+1];
+    char *host_ip;
+    int numPlayers;
+
+    fgets(line, LINESIZE, arq);
+    numPlayers = atoi(line);
+
+    init_info(info,numPlayers);
+
+    fgets(line, LINESIZE, arq);
+    *door=atoi(line);
+
+    getHostIp(&host_ip);    
+
+    for(int i=0;i<numPlayers;i++){
+
+        fgets(line, LINESIZE, arq);
+        replaceFirst(line,'\n','\0');
+        strcpy(info->idIps[i],line);
+        if(strcmp(line,host_ip)==0)
+            *hostId = i;
+
+    }
+
+    *destId=(*hostId+1)%numPlayers;
+        
+
+    fclose(arq);
+
+    return 0;
+}
+
+struct sockaddr_in init_sockaddrin(info_t* info,int destId,int door){
+
+    struct sockaddr_in saddr;
+
+    saddr.sin_family = AF_INET;
+    saddr.sin_port = htons(door);
+    saddr.sin_addr.s_addr = inet_addr(info->idIps[destId]);
+
+    return saddr;
+
+}
+
+int main(){    
+
+    int hostId,destId,door;
+    info_t info;
+
+    getInitInfo(&hostId,&destId,&info,&door);
+
+    for(int i=0;i<info.numPlayers;i++)
+        printf("id %d tem ip %s\n",i,info.idIps[i]);
+    
+    printf("meu ip:%s\n",info.idIps[hostId]);
+    printf("ip da maquina destino:%s\n",info.idIps[destId]);
+   
+
+    //---------------------------------------------------------------------------------/
+    //essa parte esta escrevendo o arquivo dados2.txt com os ips em ordem invertida, apenas para teste
+    FILE *arq = openFile("dados2.txt","w");
+
+    fprintf(arq,"%d\n",info.numPlayers);//imprime o num de players
+    fprintf(arq,"%d\n",door);//imprime a porta
+    
+    for(int i=info.numPlayers-1;i>=0;i--)//imprime os ids em ordem invertida
+        fprintf(arq,"%s\n",info.idIps[i]);
+    
+     fclose(arq);
+
+
+    //--------------------------------------------------------------------------------/
+    int s = create_socket(info.idIps[hostId],door);
+    struct sockaddr_in saddr = init_sockaddrin(&info, destId, door);
     char buffer[MSGSIZE];
-    socklen_t len = (socklen_t )sizeof(caddr);
-
-    caddr.sin_family = AF_INET;
-    caddr.sin_port = htons(PORTA);
-    caddr.sin_addr.s_addr = inet_addr("127.0.0.1");//ip da maquina destino
-
+    socklen_t len = (socklen_t )sizeof(saddr);
     memset(buffer, '\0', sizeof(buffer));
 
     //para receber a mensagem por meio do buffer
-    if (recvfrom(s, buffer, sizeof(buffer), 0,(struct sockaddr*)&caddr, &len) < 0){
-        printf("Couldn't receive\n");
+    if (recvfrom(s, buffer, sizeof(buffer), 0,(struct sockaddr*)&saddr, &len) < 0){
+        printf("erro no recebimento\n");
         return -1;
     }
     
     //para mandar a mensagem do buffer
-    if (sendto(s, buffer, strlen(buffer), 0,(struct sockaddr*)&caddr, len) < 0){
-        printf("Can't send\n");
+    if (sendto(s, buffer, strlen(buffer), 0,(struct sockaddr*)&saddr, len) < 0){
+        printf("erro mo envio");
         return -1;
     }
-    
+    //----------------------------------------------------------------------------------------
     close(s);
 
 
