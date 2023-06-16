@@ -1,9 +1,18 @@
+
 #define MAXPLAYERS 8
 #define MSGSIZE 32
 #define LINESIZE 16
 #define IPSIZE 16
 #define MARCINI 126
 #define MARCFIM 94
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define YEL   "\x1B[33m"
+#define BLUE   "\x1B[34m"
+#define MAG   "\x1B[35m"
+#define CYN   "\x1B[36m"
+#define WHT   "\x1B[37m"
+#define RESET "\x1B[0m"
 
 typedef enum
 { 
@@ -13,13 +22,6 @@ typedef enum
     EMPTYHAND 
     
 } type_t ;
-
-typedef enum
-{ 
-    BACK= 0,
-    FRONT  
-    
-} reconnect_t ;
 
 
 typedef struct mensagem_t{
@@ -33,6 +35,8 @@ typedef struct mensagem_t{
 typedef struct info_t{
     int numPlayers;
     char idIps[MAXPLAYERS][IPSIZE];
+    char maxValue;
+    char numCards;
     
 
 }info_t;
