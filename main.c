@@ -164,6 +164,7 @@ int main(){
                     if(m2.cond_rec[hostId]==0){
                         fprintf(arq,"%s\n",info.idIps[m2.jogada[0]]);
                         printf("Jogador %d jogou todas as suas cartas.\n",m2.origem);
+                        playersEnded++;
                         m2.cond_rec[hostId]==1;
                         size=fillBuffer(&m2,  buffer,info.numPlayers);
                     }
