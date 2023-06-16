@@ -65,12 +65,12 @@ int main(){
 
         if(bastao==1){
             /* tem carta e e possivel fazer uma jogada*/
-            if(jogadorTemCarta(playerDeck) && jogadorPodeJogar()){
+            if(jogadorTemCarta(playerDeck) && jogadorPodeJogar(playerDeck, m2.jogada[1], jog[0])){
                 //---------------------fazer a jogada de acordo com o permitido
                 printf("1- Jogar\n2- Pular a vez\n");
                 scanf("%d",&action);
                 //SE VALOR MAXIMO DE CARTAS FOR O MAXIMO, IMPEDIR DE PULAR A VEZ
-                if(/*jogada realizada*/){
+                if(jogadaEhValida(playerDeck, jog[1], jog[0], m2.jogada[1], m2.jogada[0])){
                     printf("Digite o numero de cartas e o valor das cartas jogadas: ");
                     scanf("%d %d",&jog[0],&jog[1]);
 

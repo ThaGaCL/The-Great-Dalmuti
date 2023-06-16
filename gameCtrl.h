@@ -32,6 +32,13 @@ void distribuiCartas(int* deck, int* playerDeck, int);
 
 int jogadorTemCarta(int* playerDeck);
 
-int jogadaEhValida(int* playerDeck, int value, int amount);
+// Checa se o jogador tem alguma jogada valida
+int jogadorPodeJogar(int* playerDeck, char jog0, char jog1);
+
+// Checa se a jogada escolhida pelo jogador eh valida
+int jogadaEhValida(int* playerDeck, int value, int amount, char jog0, char jog1);
+
+int convertCharToInt(char c);   
+
 
 #endif

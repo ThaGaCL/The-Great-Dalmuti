@@ -118,6 +118,30 @@ int jogadorTemCarta(int* playerDeck){
     return 0;
 }
 
-int jogadaEhValida(int* playerDeck, int value, int amount){
+int jogadorPodeJogar(int* playerDeck, char jog0, char jog1){
+    int j0 = convertCharToInt(jog0);
+    int j1 = convertCharToInt(jog1);
+    
+    for(int i = j1; i > 0; i--){
+        if(playerDeck[i] >= j0){
+            return 1;
+        }
+    }
 
+    return 0;
+}
+
+int jogadaEhValida(int* playerDeck, int value, int amount, char jog0, char jog1){
+    int j0 = convertCharToInt(jog0);
+    int j1 = convertCharToInt(jog1);
+    
+    if((amount == j0)&&(value <= j1)){
+        return 1;
+    }
+
+    return 0;
+}
+
+int convertCharToInt(char c){
+    int i = c - '0';
 }
