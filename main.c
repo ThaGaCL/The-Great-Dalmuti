@@ -87,6 +87,7 @@ int main(){
                         }
 
                     }while(recvMensagem(s,buffer, sizeof(buffer),&raddr,len,EMPTYHAND,info.numPlayers));
+                    fprintf(arq,"%s\n",info.idIps[hostId]);
                     playersEnded++;
                     hostEnded=1;
 
