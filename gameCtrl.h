@@ -36,7 +36,7 @@ int jogadorTemCarta(int* playerDeck);
 int jogadorPodeJogar(int* playerDeck, char jog0, char jog1);
 
 // Checa se a jogada escolhida pelo jogador eh valida
-int jogadaEhValida(int* playerDeck, int value, int amount, char jog0, char jog1);
+int jogadaEhValida(int* playerDeck, int jog0, int jog1, char numCards, char maxValue);
 
 int convertCharToInt(char c);   
 
