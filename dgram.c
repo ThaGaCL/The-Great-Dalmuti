@@ -10,20 +10,9 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include "dgram.h"
+#include "msgManip.h"
 
-#define MAXPLAYERS 8
-#define PORTA 2000
-#define MSGSIZE 1000
-#define LINESIZE 16
-#define IPSIZE 16
-
-typedef struct info_t{
-    int numPlayers;
-    char idIps[MAXPLAYERS][IPSIZE];
-    
-    
-
-}info_t;
 
 int create_socket(char* ip,int door){
     struct sockaddr_in saddr;
@@ -92,8 +81,7 @@ void replaceFirst(char* s,char c1, char c2){
 
 
 
-int getInitInfo(int *hostId,int *destId,info_t* info,int* door){
-
+int getInitInfo(char *hostId,char *destId,info_t* info,int* door){
 
     FILE *arq = openFile("dados.txt","r");
     char line[LINESIZE+1];
@@ -128,21 +116,22 @@ int getInitInfo(int *hostId,int *destId,info_t* info,int* door){
     return 0;
 }
 
-struct sockaddr_in init_sockaddrin(info_t* info,int destId,int door){
+struct sockaddr_in init_sockaddrin(info_t* info,char destId,int door){
 
     struct sockaddr_in saddr;
 
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(door);
-    saddr.sin_addr.s_addr = inet_addr(info->idIps[destId]);
+    saddr.sin_addr.s_addr = inet_addr(info->idIps[(int)destId]);
 
     return saddr;
 
 }
 
-int main(){    
+int main_2(){    
 
-    int hostId,destId,door;
+    char hostId,destId;
+    int door;
     info_t info;
 
     getInitInfo(&hostId,&destId,&info,&door);
@@ -150,8 +139,8 @@ int main(){
     for(int i=0;i<info.numPlayers;i++)
         printf("id %d tem ip %s\n",i,info.idIps[i]);
     
-    printf("meu ip:%s\n",info.idIps[hostId]);
-    printf("ip da maquina destino:%s\n",info.idIps[destId]);
+    printf("meu ip:%s\n",info.idIps[(int)hostId]);
+    printf("ip da maquina destino:%s\n",info.idIps[(int)destId]);
    
 
     //---------------------------------------------------------------------------------/
@@ -166,25 +155,59 @@ int main(){
     
      fclose(arq);
 
+    //---------------------------------------------------------------------------------/
 
-    //--------------------------------------------------------------------------------/
-    int s = create_socket(info.idIps[hostId],door);
-    struct sockaddr_in saddr = init_sockaddrin(&info, destId, door);
     char buffer[MSGSIZE];
+    int jog[13],size;
+    for(int i=0;i<13;i++)
+        jog[i]=i;
+    
+
+    mensagem_t m,m2;
+    setMsgAttr(&m,hostId,DISTRIBCARDS,jog , "1101");
+
+    size=fillBuffer(&m,  buffer,info.numPlayers);
+    //printf("buffer: <%s>\n",buffer);
+    for(int i=0;i<size;i++)
+        printf("%d ",buffer[i]);
+    printf("\n");
+
+    separateMessage(&m2,buffer,info.numPlayers);
+
+    
+    //--------------------------------------------------------------------------------/
+    int s = create_socket(info.idIps[(int)hostId],door);
+    struct sockaddr_in saddr = init_sockaddrin(&info, destId, door),raddr;
+    
     socklen_t len = (socklen_t )sizeof(saddr);
     memset(buffer, '\0', sizeof(buffer));
 
+
+    if(hostId==0){
+        fgets(buffer,MSGSIZE,stdin);
+        if (sendto(s, buffer, strlen(buffer), 0,(struct sockaddr*)&saddr, len) < 0){
+            printf("erro no envio\n");
+            return -1;
+        }
+
+    }
+
     //para receber a mensagem por meio do buffer
-    if (recvfrom(s, buffer, sizeof(buffer), 0,(struct sockaddr*)&saddr, &len) < 0){
+    if (recvfrom(s, buffer, sizeof(buffer), 0,(struct sockaddr*)&raddr, &len) < 0){
         printf("erro no recebimento\n");
         return -1;
     }
+
+    printf("recebido:%s\n",buffer);
     
     //para mandar a mensagem do buffer
     if (sendto(s, buffer, strlen(buffer), 0,(struct sockaddr*)&saddr, len) < 0){
-        printf("erro mo envio");
+        printf("erro no envio\n");
         return -1;
     }
+
+    printf("mandado:%s\n",buffer);
+        
     //----------------------------------------------------------------------------------------
     close(s);
 
