@@ -26,4 +26,12 @@ void distribute_cards(gameCtrl_t gameCtrl);
 
 void print_jogadores(gameCtrl_t gameCtrl);
 
+void fillDeck();
+
+void distribuiCartas(int* deck, int* playerDeck, int);
+
+int jogadorTemCarta(int* playerDeck);
+
+int jogadaEhValida(int* playerDeck, int value, int amount);
+
 #endif

@@ -81,3 +81,43 @@ int check_round_winner(gameCtrl_t gameCtrl){
 
     return winner;
 }
+ 
+void fillDeck(int* deck){
+    deck[0] = 2;
+    for(int i = 1; i <= CARD_MAX_VALUE; i++){
+        deck[i] = i;
+    }
+}
+
+void distribuiCartas(int* deck, int* playerDeck, int numPlayers){
+    int j, k, aux;
+    int cartasPorJogador = DECK_SIZE / numPlayers;
+
+    // Reseta o vetor de cartas do jogador
+    for(int i = 0; i <= CARD_MAX_VALUE; i++){
+        playerDeck[i] = 0;
+    }
+
+    // Distribui as cartas aleatoriamente
+    for(int i = 0; i < cartasPorJogador; i++){
+        aux = rand() % CARD_MAX_VALUE + 1;
+        while(deck[aux] == 0){
+            aux = rand() % CARD_MAX_VALUE + 1;
+        }
+        playerDeck[aux]++;
+        deck[aux]--;
+    }
+}
+
+int jogadorTemCarta(int* playerDeck){
+    for(int i = 0; i <= CARD_MAX_VALUE; i++){
+        if(playerDeck[i] > 0){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int jogadaEhValida(int* playerDeck, int value, int amount){
+
+}

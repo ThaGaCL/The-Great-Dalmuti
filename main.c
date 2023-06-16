@@ -15,12 +15,19 @@ int main(){
     mensagem_t m,m2;
     char hostId,destId;
     int door,bastao=0,size;
+    char buffer[MSGSIZE];
     info_t info;
 
     getInitInfo(&hostId,&destId,&info,&door);//cria o vetor com os ips e retorna os ids
 
     int s = create_socket(info.idIps[(int)hostId],door);
     struct sockaddr_in saddr = init_sockaddrin(&info, destId, door),raddr;
+
+    // Cria o vetor de ints que representa o deck e o preenche
+    int *deck = (int *)malloc(sizeof(int)*info.numPlayers*DECK_SIZE);
+    int *playerDeck = (int *)malloc(sizeof(int)*DECK_SIZE);
+
+    fillDeck(deck);
     
     socklen_t len = (socklen_t )sizeof(saddr);
     memset(buffer, '\0', sizeof(buffer));
@@ -32,9 +39,12 @@ int main(){
     if(hostId==0){
         bastao=1;
         //------------gerar cartas------------------------
-        //player 0 pega suas cartas
+        // Distribui as cartas do jogador 0
+        distribuiCartas(deck, playerDeck, info.numPlayers);
+
+        // Envia as cartas para o jogador 0
         for(int i=1;i<info.numPlayers;i++){
-            setMsgAttr(&m,hostId,DISTRIBCARDS,/*vetor int com cartas para ser entregue*/, getCondRecDistrib(i,info.numPlayers));
+            setMsgAttr(&m,hostId,DISTRIBCARDS, playerDeck, getCondRecDistrib(i,info.numPlayers));
             size=fillBuffer(&m,  buffer,info.numPlayers);
             do{
                 if (sendto(s, buffer, size, 0,(struct sockaddr*)&saddr, len) < 0){
@@ -50,15 +60,22 @@ int main(){
 
     int playersEnded=0,hostEnded=0;
     int jog[2];
+    int action;
     do{
 
         if(bastao==1){
-            if(/* tem carta e e possivel fazer uma jogada*/){
+            /* tem carta e e possivel fazer uma jogada*/
+            if(jogadorTemCarta(playerDeck) && jogadorPodeJogar()){
                 //---------------------fazer a jogada de acordo com o permitido
+                printf("1- Jogar\n2- Pular a vez\n");
+                scanf("%d",&action);
                 //SE VALOR MAXIMO DE CARTAS FOR O MAXIMO, IMPEDIR DE PULAR A VEZ
                 if(/*jogada realizada*/){
-                    jog[0]=/*numero de cartas jogadas*/;
-                    jog[1]=/*valor das cartas jogadas*/
+                    printf("Digite o numero de cartas e o valor das cartas jogadas: ");
+                    scanf("%d %d",&jog[0],&jog[1]);
+
+                    // jog[0]=/*numero de cartas jogadas*/
+                    // jog[1]=/*valor das cartas jogadas*/
                 
                     setMsgAttr(&m,hostId,JOGADA ,jog, getCondRecBase(hostId,info.numPlayers));
                     size=fillBuffer(&m,  buffer,info.numPlayers);
@@ -74,7 +91,7 @@ int main(){
                     size=fillBuffer(&m,  buffer,info.numPlayers);
                 }
             }
-            if(/*mao esta vazia*/){
+            if(!jogadorTemCarta(playerDeck)){
                 if(!hostEnded){
                     jog[0]=hostId;
                     setMsgAttr(&m,hostId,EMPTYHAND ,jog, getCondRecBase(hostId,info.numPlayers));
@@ -187,8 +204,7 @@ int main(){
     // print_gameCtrl(gameCtrl);
     //distribute_cards(gameCtrl);
     //print_jogadores(gameCtrl);
-
-    destroy_gameCtrl(gameCtrl);
+    // destroy_gameCtrl(gameCtrl);
     close(s);
     fclose(arq);
     return 0;
