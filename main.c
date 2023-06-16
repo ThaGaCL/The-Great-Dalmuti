@@ -34,44 +34,55 @@ int main(){
 
     getInitInfo(&hostId,&destId,&info,&door);//cria o vetor com os ips e retorna os ids
 
+    /*for(int i=0;i<info.numPlayers;i++)
+        printf("id %d tem ip %s\n",i,info.idIps[i]);
+    
+    printf("meu ip:%s\n",info.idIps[(int)hostId]);
+    printf("ip da maquina destino:%s\n",info.idIps[(int)destId]);impressao dos ips importantes*/
+
+    
+
     int s = create_socket(info.idIps[(int)hostId],door);
     struct sockaddr_in saddr = init_sockaddrin(&info, destId, door),raddr;
-
     // Cria o vetor de ints que representa o deck e o preenche
     int *deck = (int *)malloc(sizeof(int)*info.numPlayers*DECK_SIZE);
     int *playerDeck = (int *)malloc(sizeof(int)*DECK_SIZE);
+    int *playerDeckGive = (int *)malloc(sizeof(int)*DECK_SIZE);
+
+    printf("%s============Jogo inicado!!============%s\n",CYN,RESET);
 
     fillDeck(deck);
-    
     socklen_t len = (socklen_t )sizeof(saddr);
     memset(buffer, '\0', sizeof(buffer));
+
     //---------------------abertura do arquivo com o resultado------------------------
-    FILE *arq = openFile("dados2.txt","w");
+    FILE *arq = openFile("dados.txt","w");
     fprintf(arq,"%d\n",info.numPlayers);//imprime o num de players
     fprintf(arq,"%d\n",door);//imprime a porta
 
     if(hostId==0){
         bastao=1;
-        //------------gerar cartas------------------------
-        // Distribui as cartas do jogador 0
         distribuiCartas(deck, playerDeck, info.numPlayers);
 
-        // Envia as cartas para o jogador 0
+
         for(int i=1;i<info.numPlayers;i++){
             getCondRecDistrib(i,cr);
-            setMsgAttr(&m,hostId,DISTRIBCARDS, playerDeck,cr );
+            distribuiCartas(deck, playerDeckGive, info.numPlayers);
+            setMsgAttr(&m,hostId,DISTRIBCARDS, playerDeckGive,cr );
             size=fillBuffer(&m,  buffer,info.numPlayers);
+          
             do{
                 if (sendto(s, buffer, size, 0,(struct sockaddr*)&saddr, len) < 0){
                     printf("erro no envio\n");
                     return -1;
                 }
 
-            }while(recvMensagem(s,buffer, sizeof(buffer),&raddr,len,DISTRIBCARDS,info.numPlayers));//se hoube erro, reenvia
-
+            }while(recvMensagem(s,buffer, sizeof(buffer),&raddr,len,DISTRIBCARDS,info.numPlayers)<0);//se hoube erro, reenvia
         }
 
+
     }
+
 
     int playersEnded=0,hostEnded=0;
     int jog[2];
@@ -79,18 +90,46 @@ int main(){
     do{
 
         if(bastao==1){
-            /* tem carta e e possivel fazer uma jogada*/
-            if(jogadorTemCarta(playerDeck) && jogadorPodeJogar(playerDeck, m2.jogada[1], jog[0])){
-                //---------------------fazer a jogada de acordo com o permitido
-                printf("1- Jogar\n2- Pular a vez\n");
-                scanf("%d",&action);
-                //SE VALOR MAXIMO DE CARTAS FOR O MAXIMO, IMPEDIR DE PULAR A VEZ
-                if(jogadaEhValida(playerDeck, jog[1], jog[0], m2.jogada[1], m2.jogada[0])){
-                    printf("Digite o numero de cartas e o valor das cartas jogadas: ");
-                    scanf("%d %d",&jog[0],&jog[1]);
+            if(jogadorTemCarta(playerDeck) && jogadorPodeJogar(playerDeck, info.numCards,info.maxValue)){
 
-                    // jog[0]=/*numero de cartas jogadas*/
-                    // jog[1]=/*valor das cartas jogadas*/
+                printf("\n");
+                printf("%s-------------Sua mao:-------------\n",GRN);
+                for(int i=0;i<13;i++)
+                    if(playerDeck[i]>0)
+                        printf("%s%d%s cartas de valor %s%d%s\n",RESET,playerDeck[i],GRN,RESET,i+1,GRN);
+
+                printf("%s\n",RESET);
+                if(info.numCards > 0){
+                    printf("%sQuantidade de Cartas:%s %d\n",MAG,RESET, info.numCards);
+                }
+                printf("%sValor Maximo: %s%d\n",MAG,RESET, info.maxValue);
+
+                printf("\n");
+
+                if(info.maxValue==13)
+                    action=1;
+                else{
+                    do{
+                        printf("1- Jogar        2- Pular a vez:\n");
+                        scanf("%d",&action);
+                    }while(action!=1&&action!=2);
+                }
+                if(action==1){
+
+                    do{
+                        if(info.numCards==0){
+                            printf("%sDigite o numero de cartas: %s",MAG,RESET);
+                            scanf("%d",&jog[0]);    
+                        }else{
+                            jog[0]=info.numCards;
+
+                        }
+                        printf("%sDigite o valor das cartas jogadas: %s",MAG,RESET);
+                        scanf("%d",&jog[1]);
+                
+                    }while(!jogadaEhValida(playerDeck, jog[0], jog[1], info.numCards, info.maxValue));
+                    
+
                     getCondRecBase(hostId,cr);
                     setMsgAttr(&m,hostId,JOGADA ,jog, cr);
                     size=fillBuffer(&m,  buffer,info.numPlayers);
@@ -101,13 +140,16 @@ int main(){
                             return -1;
                         }
 
-                    }while(recvMensagem(s,buffer, sizeof(buffer),&raddr,len,JOGADA,info.numPlayers));
+                    }while(recvMensagem(s,buffer, sizeof(buffer),&raddr,len,JOGADA,info.numPlayers)<0);
+
+          
+
                     getCondRecBase(hostId,cr);
                     setMsgAttr(&m,hostId,BASTAO ,jog, cr);
                     size=fillBuffer(&m,  buffer,info.numPlayers);
                 }
             }
-            if(!jogadorTemCarta(playerDeck)){
+            if(!jogadorTemCarta(playerDeck)||info.numPlayers-playersEnded==1){
                 if(!hostEnded){
                     jog[0]=hostId;
                     getCondRecBase(hostId,cr);
@@ -120,7 +162,7 @@ int main(){
                             return -1;
                         }
 
-                    }while(recvMensagem(s,buffer, sizeof(buffer),&raddr,len,EMPTYHAND,info.numPlayers));
+                    }while(recvMensagem(s,buffer, sizeof(buffer),&raddr,len,EMPTYHAND,info.numPlayers)<0);
                     fprintf(arq,"%s\n",info.idIps[(int)hostId]);
                     playersEnded++;
                     hostEnded=1;
@@ -152,9 +194,11 @@ int main(){
 
 
         }
-        size=recvfrom(s, buffer, sizeof(buffer), 0,(struct sockaddr*)&raddr, &len);
-        if(size<0)
-            perror("erro no recebimento:");
+        if(playersEnded<info.numPlayers){
+            size=recvfrom(s, buffer, sizeof(buffer), 0,(struct sockaddr*)&raddr, &len);
+            if(size<0)
+                perror("erro no recebimento:");
+        }
 
         if(verifyMsg(buffer,size)){
             separateMessage(&m2, buffer,info.numPlayers);
@@ -162,28 +206,45 @@ int main(){
 
                 case DISTRIBCARDS:
                     if(m2.cond_rec[(int)hostId]==0){
-                        //getcards from m2.jogada
+                        
+
+                        for(int i=0;i<13;i++)
+                            playerDeck[i]=m2.jogada[i];
+
+                        printf("\n");
+                        printf("%s-------------Sua mao:-------------\n",GRN);
+                        for(int i=0;i<13;i++)
+                            if(playerDeck[i]>0)
+                                printf("%s%d%s cartas de valor %s%d%s\n",RESET,playerDeck[i],GRN,RESET,i+1,GRN);
+
+                        printf("%s\n",RESET);
+
+
                         m2.cond_rec[(int)hostId]=1;
                         size=fillBuffer(&m2,  buffer,info.numPlayers);
-                        if (sendto(s, buffer, size, 0,(struct sockaddr*)&saddr, len) < 0){
-                            printf("erro no envio\n");
-                            return -1;
-                        }
                     }
+                    if (sendto(s, buffer, size, 0,(struct sockaddr*)&saddr, len) < 0){
+                        printf("erro no envio\n");
+                        return -1;
+                    }
+                    
                 break;
 
                 case BASTAO:
                     bastao=1;
                     if(m2.origem==hostId){
-                        //resetar numero de cartas e valor max
-                        printf("Você ganhou a rodada");
+                        info.numCards=0;
+                        info.maxValue=13;
+                        printf("Você ganhou a rodada!\n");
                     }
                 break;
 
                 case JOGADA:
                     if(m2.cond_rec[(int)hostId]==0){
-                        //salvar numero de cartas e valor max from m2.jogada
-                        printf("Jogador %d jogou %d cartas de valor %d.\n",m2.origem,m2.jogada[0],m2.jogada[1]);
+                        
+                        info.numCards=m2.jogada[0];
+                        info.maxValue=m2.jogada[1];
+                        printf("Jogador %d jogou %d cartas de valor %d.\n",m2.origem+1,m2.jogada[0],m2.jogada[1]);
                         m2.cond_rec[(int)hostId]=1;
                         size=fillBuffer(&m2,  buffer,info.numPlayers);
                     }
@@ -216,12 +277,6 @@ int main(){
     }while(playersEnded<info.numPlayers); 
 
     
-
-    //gameCtrl_t gameCtrl = new_gameCtrl(info.numPlayers);
-    // print_gameCtrl(gameCtrl);
-    //distribute_cards(gameCtrl);
-    //print_jogadores(gameCtrl);
-    // destroy_gameCtrl(gameCtrl);
     close(s);
     fclose(arq);
     return 0;
