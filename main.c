@@ -1,5 +1,6 @@
 #include "gameCtrl.h"
 #include "dgram.h"
+#include <string.h>
 #include <time.h>
 // TODO 
 // 1. Implementar o jogador.h e jogador.c - Done
