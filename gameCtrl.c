@@ -83,14 +83,15 @@ int check_round_winner(gameCtrl_t gameCtrl){
 }
  
 void fillDeck(int* deck){
-    deck[0] = 2;
-    for(int i = 1; i <= CARD_MAX_VALUE; i++){
-        deck[i] = i;
+    for(int i = 0; i < CARD_MAX_VALUE; i++){
+        deck[i] = i+1;
     }
+
+    deck[CARD_MAX_VALUE] = 2;
 }
 
 void distribuiCartas(int* deck, int* playerDeck, int numPlayers){
-    int j, k, aux;
+    int aux;
     int cartasPorJogador = DECK_SIZE / numPlayers;
 
     // Reseta o vetor de cartas do jogador
@@ -100,7 +101,7 @@ void distribuiCartas(int* deck, int* playerDeck, int numPlayers){
 
     // Distribui as cartas aleatoriamente
     for(int i = 0; i < cartasPorJogador; i++){
-        aux = rand() % CARD_MAX_VALUE + 1;
+        aux = rand() % (CARD_MAX_VALUE + 1);
         while(deck[aux] == 0){
             aux = rand() % CARD_MAX_VALUE + 1;
         }
@@ -115,33 +116,54 @@ int jogadorTemCarta(int* playerDeck){
             return 1;
         }
     }
+
     return 0;
 }
 
 int jogadorPodeJogar(int* playerDeck, char jog0, char jog1){
-    int j0 = convertCharToInt(jog0);
-    int j1 = convertCharToInt(jog1);
+    int quantidade = jog0;
+    int valor = jog1;
     
-    for(int i = j1; i > 0; i--){
-        if(playerDeck[i] >= j0){
+    for(int i = valor-1; i > 1; i--){
+        
+        if(playerDeck[i-1] + playerDeck[CARD_MAX_VALUE] >= quantidade){
             return 1;
         }
     }
 
     return 0;
 }
+                                                                    //basicos
+int jogadaEhValida(int* playerDeck, int jog0, int jog1, char numCards, char maxValue){
+    //int quantidade = jog0;
+    //int valor = jog1;
 
-int jogadaEhValida(int* playerDeck, int value, int amount, char jog0, char jog1){
-    int j0 = convertCharToInt(jog0);
-    int j1 = convertCharToInt(jog1);
-    
-    if((amount == j0)&&(value <= j1)){
-        return 1;
+    if(jog1>=maxValue)
+        return 0;
+
+    if(jog0==0||playerDeck[jog1-1]==0){
+        return 0;
     }
+
+    int aux;
+
+    if(playerDeck[jog1-1]>=jog0){
+
+        playerDeck[jog1-1]-=jog0;  
+        return 1;        
+    }else if(playerDeck[jog1-1]+playerDeck[12]>=jog0 && jog1-1!=12){
+        aux=jog0-playerDeck[jog1-1];
+        playerDeck[jog1-1]=0;  
+        playerDeck[12]-=aux;
+        return 1;        
+
+    }   
+
 
     return 0;
 }
 
 int convertCharToInt(char c){
     int i = c - '0';
+    return i;
 }
