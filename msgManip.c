@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
 #include "dgram.h"
 #include "msgManip.h"
 
@@ -76,23 +78,19 @@ int verifyReceb(mensagem_t* m, int numPlayers){
 
 }
 
-char* getCondRecDistrib(int id,int numPlayers){
+void getCondRecDistrib(int id,char *v){
 
-    char v[numPlayers];
-    memset(v, 1, sizeof(v));
+    //char v[numPlayers];
+    memset(v, 1, MAXPLAYERS);
     v[id]=0;
-
-    return v;
 
 }
 
-char* getCondRecBase(int id,int numPlayers){
+void getCondRecBase(int id,char* v){
 
-    char v[numPlayers];
-    memset(v, 0, sizeof(v));
+    //char v[numPlayers];
+    memset(v, 0, MAXPLAYERS);
     v[id]=1;
-
-    return v;
 
 }
 
@@ -112,7 +110,7 @@ void separateMessage(mensagem_t* m,char* buffer,int numPlayers){
 
 }
 
-int verifyMsg(unsigned char* buffer,int size){
+int verifyMsg(char* buffer,int size){
 
     if(!buffer)
         return 0;
@@ -130,9 +128,9 @@ int protocoloValido(char* buffer, int buffer_size,char tipo,int numPlayers) {
 
     mensagem_t m;   
     if(verifyMsg(buffer,buffer_size)) {
-        separateMessage(&m, buffer);
-        if(m.tipo==tipo&&verifyReceb(&m,numPlayers)){
-                return 1;
+        separateMessage(&m, buffer,numPlayers);
+        if(m.tipo==tipo&&verifyReceb(&m,numPlayers))
+            return 1;
    
     }
 
