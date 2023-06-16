@@ -23,7 +23,6 @@ void setMsgAttr(mensagem_t* m,char id,int tipo,int *jogada , char* cond_rec){
         //printf("jogada:%d ",m->jogada[i]);
     }
     //printf("\n");
-    //strcpy((char*)m->jogada,(char*) jogada);
     strcpy((char*)m->cond_rec, (char*)cond_rec);
 
 }
@@ -125,13 +124,12 @@ int verifyMsg(char* buffer,int size){
 int protocoloValido(char* buffer, int buffer_size,char tipo,int numPlayers) {
     if (buffer_size <= 0) 
         return 0; 
-
     mensagem_t m;   
     if(verifyMsg(buffer,buffer_size)) {
         separateMessage(&m, buffer,numPlayers);
         if(m.tipo==tipo&&verifyReceb(&m,numPlayers))
             return 1;
-   
+        
     }
 
     return 0;
@@ -144,6 +142,7 @@ int recvMensagem(int s,char* buffer, int buffer_size,struct sockaddr_in* raddr,s
         printf("erro no recebimento\n");
         return -1;
     }
+
 
     if(protocoloValido(buffer, bytes_lidos,tipo,numPlayers))
         return bytes_lidos; 
