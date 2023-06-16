@@ -67,6 +67,8 @@ int getHostIp(char** host_ip){
 int init_info(info_t* info,int numPlayers){
 
     info->numPlayers =numPlayers;
+    info->maxValue=13;
+    info->numCards=0;
 
     return 0;
 
@@ -210,6 +212,8 @@ int main_2(){
         
     //----------------------------------------------------------------------------------------
     close(s);
+
+
     return 0;
 
 }
