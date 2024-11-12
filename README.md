@@ -1,5 +1,4 @@
-# The-Great-Dalmuti
-# Sistema de Backup
+# The Great Dalmuti
 ## Universidade Federal do Paraná
 ### CI1058 – Redes de Computadores 1
 
